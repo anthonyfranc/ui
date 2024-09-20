@@ -3,13 +3,9 @@ import { ref, computed } from 'vue'
 import * as ui from '#build/ui'
 import { pascalCase } from 'scule'
 import { updateAppConfig } from '#app'
-import { definePageMeta, resolveComponent } from '#imports'
+import { resolveComponent, useAppConfig } from '#imports'
 
-definePageMeta({
-  layout: false
-})
-
-const componentExample = {
+const componentExamples: Record<string, any> = {
   accordion: {
     component: resolveComponent('UAccordion'),
     props: {
@@ -255,6 +251,7 @@ const componentExample = {
     props: {}
   }
 }
+
 const appConfig = useAppConfig()
 
 const components = Object.keys(ui).map((key) => {
@@ -267,7 +264,7 @@ const components = Object.keys(ui).map((key) => {
     slots: slots
       ? Object.keys(slots)?.map(id => ({
         id,
-        value: appConfig.ui?.[key]?.slots?.[id] // TODO: default to app.config value
+        value: (appConfig.ui as any)?.[key]?.slots?.[id] // TODO: default to app.config value
       }))
       : [{ id: 'base', value: '' }]
   }
@@ -289,17 +286,13 @@ const computedUI = computed(() => {
 })
 
 function onHover(slotId: string) {
-  const element = preview.value.querySelector(`[data-slot=${slotId}]`)
-  if (element) {
-    element.classList.add('highlight')
-  }
+  const elements = preview.value.querySelectorAll(`[data-slot=${slotId}]`)
+  elements?.forEach((element: HTMLElement) => element.classList.add('highlight'))
 }
 
 function onLeave(slotId: string) {
-  const element = preview.value.querySelector(`[data-slot=${slotId}]`)
-  if (element) {
-    element.classList.remove('highlight')
-  }
+  const elements = preview.value.querySelectorAll(`[data-slot=${slotId}]`)
+  elements?.forEach((element: HTMLElement) => element.classList.remove('highlight'))
 }
 
 function saveConfig() {
@@ -341,8 +334,8 @@ function saveConfig() {
         class="col-span-2 flex justify-center items-center p-8"
       >
         <component
-          :is="componentExample[component.key].component"
-          v-bind="{ ui: computedUI, ...componentExample[component.key].props, class: computedUI.base }"
+          :is="componentExamples[component.key].component"
+          v-bind="{ ui: computedUI, ...componentExamples[component.key].props, class: computedUI?.base }"
         />
       </div>
 
@@ -363,7 +356,6 @@ function saveConfig() {
         </div>
       </div>
 
-      <!-- This is to include tailwind css classes for testing -->
       <div
         class="hidden rounded-full bg-black border border-4 border-black border-cool-100 border-red-800 text-black p-1 p-2 p-3 p-4"
       />
